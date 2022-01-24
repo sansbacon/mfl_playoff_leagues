@@ -97,18 +97,100 @@ class MFL:
         params = {**self.base_params, **params} if params else self.base_params.copy()
         return self.s.get(self.url, params=params, headers=headers)
  
-    def get_player(self, pid) -> dict:
-        """Returns player dict given player id"""
-        return self.player_data.get(pid)
-    
-    def get_nfl_schedule(self, week=''):
+    # MFL ENDPOINTS
+    def get_league(self) -> requests.Response:
+        """Gets league"""
+        return self.get(params={'TYPE': 'league'})
+
+    def get_league_standings(self) -> requests.Response:
+        """Gets league"""
+        return self.get(params={'TYPE': 'leagueStandings'})
+
+    def get_live_scoring(self, week: str = '') -> requests.Response:
+        """Gets live scoring results"""
+        return self.get(params={'TYPE': 'liveScoring', 'W': week})
+
+    def get_nfl_schedule(self, week: str = '') -> requests.Response:
         """Gets weekly NFL schedule"""
         return self.get(params={'TYPE': 'nflSchedule', 'W': week})
         
-    def get_weekly_scoring(self, week) -> requests.Response:
+    def get_player_scores(self, week: str = '', year: str = '') -> requests.Response:
+        """Gets player scoring for given week"""
+        return self.get(params={'TYPE': 'playerScores', 'W': week, 'YEAR': year})
+    
+    def get_players(self, details: str = '0') -> requests.Response:
+        """Gets player scoring for given week"""
+        return self.get(params={'TYPE': 'players', 'DETAILS': details})
+
+    def get_points_allowed(self) -> requests.Response:
+        """Gets team points allowed by position"""
+        return self.get(params={'TYPE': 'pointsAllowed'})
+
+    def get_projected_scores(self, week: str = '') -> requests.Response:
+        """Gets projected player scoring for given week"""
+        return self.get(params={'TYPE': 'projectedScores', 'W': week})
+    
+    def get_weekly_results(self, week: str = '') -> requests.Response:
         """Gets weekly scoring resource for given week"""
         return self.get(params={'TYPE': 'weeklyResults', 'W': week})
     
+    # PARSE MFL ENDPOINTS   
+    def parse_league(self, r: requests.Response, filters: tuple = ('id', 'name', 'owner_name', 'lastVisit')) -> Dict[str, dict]:
+        """Gets the base manager data for a league
+        
+        Args:
+            r (requests.Response): the API response
+            
+        Returns:
+            Dict[str, dict]: key is the franchise_id, value is the full franchise dict
+         
+        """       
+        # assemble the data
+        data = {}  
+        for row in r.json()['league']['franchises']['franchise']:
+            d = {k: row[k] for k in filters}
+            d['lastVisit'] = Table.parse_unix_timestamp(d['lastVisit'])
+            data[d['id']] = d
+        return data
+
+    def parse_league_standings(self) -> dict:
+        """parses league"""
+        return data
+
+    def parse_live_scoring(self, week: str = '') -> dict:
+        """parses live scoring results"""
+        return data
+
+    def parse_nfl_schedule(self, week: str = '') -> dict:
+        """parses weekly NFL schedule"""
+        return data
+        
+    def parse_player_scores(self, week: str = '', year: str = '') -> dict:
+        """parses player scoring for given week"""
+        return data
+    
+    def parse_players(self, details: str = '0') -> dict:
+        """parses player scoring for given week"""
+        return data
+
+    def parse_points_allowed(self) -> dict:
+        """parses team points allowed by position"""
+        return data
+
+    def parse_projected_scores(self, week: str = '') -> dict:
+        """parses projected player scoring for given week"""
+        return data
+    
+    def parse_weekly_results(self, week: str = '') -> dict:
+        """parses weekly scoring resource for given week"""
+        return data
+
+    
+    # utility functions
+    def get_player(self, pid) -> dict:
+        """Returns player dict given player id"""
+        return self.player_data.get(pid)
+   
     @property
     def live_scoring_data(self):
         """Gets live scoring"""
